@@ -1,19 +1,27 @@
 import socket
-import json
+import my_databases
+import mysql.connector
 
+# MySQL bazasiga ulanish
+baza = mysql.connector.connect(    
+    host=my_databases.host,
+    user=my_databases.user,        
+    password=my_databases.password, 
+    database=my_databases.database
+)
+
+cursor = baza.cursor()
 
 with open("domains.txt") as input_file:
     domains = input_file.read().split()
 
-    result = []
     for domain in domains:
-        ip = socket.gethostbyname(domain)
-        
-        result.append({
-            'name': domain,
-            'ip': ip
-        })
+            try:
+                ip = socket.gethostbyname(domain)
+                cursor.execute("INSERT INTO Domain (domain, ip) VALUES (%s, %s)", (domain, ip))
+            except :
+                 print(" {domain} ning Ip manzil topilmadi ")
 
-with open("domains.json", "w") as output_file:
-    result_json = json.dumps(result, indent=4)
-    output_file.write(result_json)
+baza.commit()
+cursor.close()
+baza.close()
